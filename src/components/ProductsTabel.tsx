@@ -1,62 +1,72 @@
 'use client'
+// src/components/ProductsTable.tsx
+import { useEffect, useState } from 'react';
 
-import React, { useEffect, useState } from 'react';
-import { Table, TableHeader, TableBody, TableRow, TableCell } from '@/components/ui/table';
-
+// Define the Product type based on your Prisma model
 interface Product {
   id: number;
   name: string;
+  slug: string;
   price: number;
   quantity: number;
   createdAt: string;
+  updatedAt: string;
 }
 
-const ProductsTable = () => {
+export default function ProductsTable() {
+  // Explicitly define the type of products as Product[]
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('src/app/api/products/products.ts');
-        const data = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch products', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    async function fetchProducts() {
+      const response = await fetch('/api/products');
+      const data: Product[] = await response.json(); // Explicitly type the response
+      setProducts(data);
+    }
 
     fetchProducts();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-
   return (
-    <Table className="min-w-full">
-      <TableHeader>
-        <TableRow>
-          <TableCell>ID</TableCell>
-          <TableCell>Name</TableCell>
-          <TableCell>Price</TableCell>
-          <TableCell>Quantity</TableCell>
-          <TableCell>Date Added</TableCell>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {products.map((product) => (
-          <TableRow key={product.id}>
-            <TableCell>{product.id}</TableCell>
-            <TableCell>{product.name}</TableCell>
-            <TableCell>${product.price.toFixed(2)}</TableCell>
-            <TableCell>{product.quantity}</TableCell>
-            <TableCell>{new Date(product.createdAt).toLocaleDateString()}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="p-4">
+      <table className="min-w-full bg-white border border-gray-300">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b">ID</th>
+            <th className="py-2 px-4 border-b">Name</th>
+            <th className="py-2 px-4 border-b">Slug</th>
+            <th className="py-2 px-4 border-b">Price</th>
+            <th className="py-2 px-4 border-b">Quantity</th>
+            <th className="py-2 px-4 border-b">Created At</th>
+            <th className="py-2 px-4 border-b">Updated At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.length > 0 ? (
+            products.map((product) => (
+              <tr key={product.id}>
+                <td className="py-2 px-4 border-b">{product.id}</td>
+                <td className="py-2 px-4 border-b">{product.name}</td>
+                <td className="py-2 px-4 border-b">{product.slug}</td>
+                <td className="py-2 px-4 border-b">${product.price.toFixed(2)}</td>
+                <td className="py-2 px-4 border-b">{product.quantity}</td>
+                <td className="py-2 px-4 border-b">
+                  {new Date(product.createdAt).toLocaleDateString()}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  {new Date(product.updatedAt).toLocaleDateString()}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7} className="text-center py-2 px-4">
+                No products available
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
-};
-
-export default ProductsTable;
+}
