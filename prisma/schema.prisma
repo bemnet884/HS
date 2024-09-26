@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Users {
+  userId String @id @default(cuid())
+  name   String
+  slug   String @unique
+  email  String
+}
+
+// model Products {
+//   productId     String   @id @default(cuid())
+//   name          String
+//   slug   String @unique
+//   price         Float
+//   rating        Float?
+//   stockQuantity Int
+// }
+
+model Products {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  price       Float
+  quantity    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  purchases   Purchases[]
+  sales       Sales[]
+  expenses    Expenses[]
+}
+
+
+model Sales {
+  id          Int      @id @default(autoincrement())
+  product     Products  @relation(fields: [productId], references: [id])
+  productId   Int
+  quantity    Int
+  salePrice   Float
+  saleDate    DateTime @default(now())
+}
+
+model Purchases {
+  id          Int      @id @default(autoincrement())
+  product     Products  @relation(fields: [productId], references: [id])
+  productId   Int
+  quantity    Int
+  purchasePrice Float
+  supplier    String
+  purchaseDate DateTime @default(now())
+}
+
+
+model Expenses {
+  id          Int      @id @default(autoincrement())
+  product     Products?  @relation(fields: [productId], references: [id])
+  productId   Int?
+  description String
+  amount      Float
+  expenseDate DateTime @default(now())
+}
+
+model SalesSummary {
+  salesSummaryId   String   @id
+  totalValue       Float
+  changePercentage Float?
+  date             DateTime
+}
+
+model PurchaseSummary {
+  purchaseSummaryId String   @id
+  totalPurchased    Float
+  changePercentage  Float?
+  date              DateTime
+}
+
+model ExpenseSummary {
+  expenseSummaryId  String              @id
+  totalExpenses     Float
+  date              DateTime
+  ExpenseByCategory ExpenseByCategory[]
+}
+
+model ExpenseByCategory {
+  expenseByCategoryId String         @id
+  expenseSummaryId    String
+  category            String
+  amount              BigInt
+  date                DateTime
+  expenseSummary      ExpenseSummary @relation(fields: [expenseSummaryId], references: [expenseSummaryId])
+}
